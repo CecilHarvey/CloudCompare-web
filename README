@@ -1,0 +1,8 @@
+Port of CloudCompare rendering code to Emscripten.
+
+This port uses modified version of gl4es and iGLU libraries:
+https://github.com/CecilHarvey/gl4es
+https://github.com/CecilHarvey/iGLU
+
+Usage:
+make -DEMSCRIPTEN=1

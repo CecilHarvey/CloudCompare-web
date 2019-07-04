@@ -1,0 +1,78 @@
+//##########################################################################
+//#                                                                        #
+//#                            CLOUDCOMPARE                                #
+//#                                                                        #
+//#  This program is free software; you can redistribute it and/or modify  #
+//#  it under the terms of the GNU General Public License as published by  #
+//#  the Free Software Foundation; version 2 of the License.               #
+//#                                                                        #
+//#  This program is distributed in the hope that it will be useful,       #
+//#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+//#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+//#  GNU General Public License for more details.                          #
+//#                                                                        #
+//#          COPYRIGHT: EDF R&D / TELECOM ParisTech (ENST-TSI)             #
+//#                                                                        #
+//##########################################################################
+
+#include "ccIncludeGL.h"
+
+#include "ccPlane.h"
+
+//qCC_db
+#include "ccPointCloud.h"
+#include "ccNormalVectors.h"
+
+ccPlane::ccPlane(PointCoordinateType xWidth, PointCoordinateType yWidth, const ccGLMatrix* transMat/*=0*/, std::string name/*="Plane")*/)
+	: ccGenericPrimitive(name,transMat)
+	, m_xWidth(xWidth)
+	, m_yWidth(yWidth)
+{
+	buildUp();
+	applyTransformationToVertices();
+}
+
+bool ccPlane::buildUp()
+{
+	if (!init(4,false,2,1))
+	{
+		ccLog::Error("[ccPlane::buildUp] Not enough memory");
+		return false;
+	}
+
+	ccPointCloud* verts = vertices();
+	assert(verts);
+	assert(m_triNormals);
+
+	verts->addPoint(CCVector3(-m_xWidth*0.5f,-m_yWidth*0.5f, 0));
+	verts->addPoint(CCVector3(-m_xWidth*0.5f, m_yWidth*0.5f, 0));
+	verts->addPoint(CCVector3( m_xWidth*0.5f, m_yWidth*0.5f, 0));
+	verts->addPoint(CCVector3( m_xWidth*0.5f,-m_yWidth*0.5f, 0));
+
+	m_triNormals->addElement(ccNormalVectors::GetNormIndex(CCVector3(0.0,0.0,1.0).u));
+
+	addTriangle(0,2,1);
+	addTriangleNormalIndexes(0,0,0);
+	addTriangle(0,3,2);
+	addTriangleNormalIndexes(0,0,0);
+
+	return true;
+}
+
+ccPlane::ccPlane(std::string name /*="Plane"*/)
+	: ccGenericPrimitive(name)
+	, m_xWidth(0)
+	, m_yWidth(0)
+{
+}
+
+ccGenericPrimitive* ccPlane::clone() const
+{
+	return finishCloneJob(new ccPlane(m_xWidth,m_yWidth,&m_transformation,getName()));
+}
+
+ccBBox ccPlane::getFitBB(ccGLMatrix& trans)
+{
+	trans = m_transformation;
+	return ccBBox(CCVector3(-m_xWidth*0.5f,-m_yWidth*0.5f, 0),CCVector3(m_xWidth*0.5f,m_yWidth*0.5f, 0));
+}
